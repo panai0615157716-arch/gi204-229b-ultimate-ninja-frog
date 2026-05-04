@@ -17,6 +17,23 @@ public class Bullet : MonoBehaviour
         }
 
         // ยิงไปโดนอะไรก็ตาม (โดนกำแพง โดนศัตรู) กระสุนต้องทำลายตัวเองทิ้ง
-        Destroy(gameObject); 
+        Destroy(gameObject);
+    }
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        // เช็กว่าชนวัตถุที่มีสคริปต์ EnemyHealth หรือไม่
+        EnemyHealth enemy = collision.GetComponent<EnemyHealth>();
+
+        if (enemy != null)
+        {
+            enemy.TakeDamage(20); // ลดเลือดศัตรู(หรือตามความแรงที่ตั้งไว้)
+            Destroy(gameObject); // ยิงโดนแล้วทำลายตัวกระสุนทิ้ง
+        }
+
+        // ถ้าชนพื้นหรือกำแพงให้หายไปด้วย
+        if (collision.CompareTag("Ground"))
+        {
+            Destroy(gameObject);
+        }
     }
 }

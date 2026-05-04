@@ -1,11 +1,11 @@
 using UnityEngine;
- [RequireComponent(typeof(Rigidbody2D))]
- [RequireComponent(typeof(Animator))]
- [RequireComponent(typeof(SpriteRenderer))]
+[RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(SpriteRenderer))]
 
 public class Playerr : MonoBehaviour
 {
-     
+
     [Header("Movement Settings")]
     public float speed = 5f;       // ค่าความเร็วใน Unity จะใช้น้อยกว่า Godot เพราะหน่วยเป็นเมตร (ไม่ใช่พิกเซล)
     public float jumpForce = 5f;  // ค่าแรงกระโดด (ใน Unity แกน Y ขึ้นบนคือค่าบวก)
@@ -54,13 +54,13 @@ public class Playerr : MonoBehaviour
     }
     private void HandleMovement()
     {
-    
+
         float moveInput = Input.GetAxisRaw("Horizontal");
-        
+
         // กำหนดความเร็วแกน X โดยรักษาความเร็วแกน Y ไว้เหมือนเดิม
         rb.linearVelocity = new Vector2(moveInput * speed, rb.linearVelocity.y);
 
-        
+
         if (moveInput > 0)
         {
             spriteRenderer.flipX = false; // หันขวา
