@@ -73,8 +73,7 @@ public class Playerr : MonoBehaviour
 
     private void HandleJump()
     {
-        
-        if (Input.GetButtonDown("Jump") && isGrounded)
+        if (Input.GetButtonDown("Jump") && isGrounded && Mathf.Abs(rb.linearVelocity.y) < 0.01f)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
             if (jumpSound != null) jumpSound.Play();
@@ -94,7 +93,7 @@ public class Playerr : MonoBehaviour
         // }
         else
         {
-            animator.Play("frong");
+            animator.Play("Frog");
         }
     }
 

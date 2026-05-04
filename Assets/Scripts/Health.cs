@@ -29,13 +29,13 @@ public class Health : MonoBehaviour
         {
             gameOverPanel.SetActive(false);
         }
-        Time.timeScale = 1f; 
+        Time.timeScale = 1f;
     }
 
     public void TakeDamage(int damageAmount)
     {
         currentHealth -= damageAmount;
-        
+
         // อัปเดตหลอดเลือดให้ลดลงตาม
         if (healthSlider != null)
         {
@@ -60,7 +60,7 @@ public class Health : MonoBehaviour
         }
 
         // หยุดเวลาในเกม (ศัตรู แอนิเมชัน และการเคลื่อนไหวทุกอย่างจะหยุดนิ่ง)
-        Time.timeScale = 0f; 
+        Time.timeScale = 0f;
     }
 
     // ==========================================
@@ -70,7 +70,7 @@ public class Health : MonoBehaviour
     public void RestartGame()
     {
         // สิ่งสำคัญ: ต้องคืนค่าเวลาให้เดินปกติ (1f) ก่อนโหลดฉาก ไม่งั้นเกมจะค้างตั้งแต่เริ่ม
-        Time.timeScale = 1f; 
+        Time.timeScale = 1f;
 
         // โหลดฉากปัจจุบันขึ้นมาใหม่
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
@@ -80,6 +80,6 @@ public class Health : MonoBehaviour
     {
         Debug.Log("ออกจากการเล่นเกม");
         // ปิดเกม (จะเห็นผลตอนกด Build เกมเป็นไฟล์ .exe ออกมาแล้วเท่านั้น ในหน้าต่าง Editor จะไม่ปิดให้)
-        Application.Quit(); 
+        Application.Quit();
     }
 }
