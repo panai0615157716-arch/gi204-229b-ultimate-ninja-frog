@@ -1,23 +1,40 @@
 using UnityEngine;
+using TMPro;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(SpriteRenderer))]
-
 public class Playerr : MonoBehaviour
 {
-
     [Header("Movement Settings")]
-    public float speed = 5f;       // ค่าความเร็วใน Unity จะใช้น้อยกว่า Godot เพราะหน่วยเป็นเมตร (ไม่ใช่พิกเซล)
-    public float jumpForce = 5f;  // ค่าแรงกระโดด (ใน Unity แกน Y ขึ้นบนคือค่าบวก)
+    public float speed = 5f;
+    public float jumpForce = 5f;
+
+    [Header("HP Settings")]
+    public int maxHP = 100;
+    public int currentHP;
+    public TextMeshProUGUI hpText;
+    public Image healthBarFill;
+
+    [Header("Fruit & Win Settings")]
+    public int fruitCount = 0;
+    public int requiredFruits = 5;
+    public TextMeshProUGUI fruitText;
+    public GameObject winPanel;
+    public GameObject winSfxPrefab;
+    public GameObject gameOverPanel;
+
 
     [Header("Audio")]
     public AudioSource jumpSound;
     public AudioSource deathSound;
 
     [Header("Ground Check")]
-    public Transform groundCheck;  // ตำแหน่งใต้เท้าตัวละครสำหรับเช็กพื้น
+    public Transform groundCheck;
     public float groundCheckRadius = 0.2f;
-    public LayerMask groundLayer;  // เลเยอร์ของพื้น
+    public LayerMask groundLayer;
 
     // ตัวแปรเก็บ Component
     private Rigidbody2D rb;
@@ -28,20 +45,28 @@ public class Playerr : MonoBehaviour
     private bool canMove = true;
     private bool isGrounded;
 
+
+
     void Start()
     {
-        // ดึง Component ในตัวมันเองมาใช้งาน 
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
 
+        // ตั้งค่าเริ่มต้นระบบเลือดและ UI
+        currentHP = maxHP;
+        Time.timeScale = 1f;
+
+        if (winPanel != null) winPanel.SetActive(false);
+        if (gameOverPanel != null) gameOverPanel.SetActive(false);
+
+        UpdateAllUI();
     }
 
     void Update()
     {
         if (!alive) return;
 
-        // เช็กว่ายืนบนพื้นหรือไม่
         CheckGrounded();
 
         if (canMove)
@@ -52,23 +77,14 @@ public class Playerr : MonoBehaviour
 
         HandleAnimation();
     }
+
     private void HandleMovement()
     {
-
         float moveInput = Input.GetAxisRaw("Horizontal");
-
-        // กำหนดความเร็วแกน X โดยรักษาความเร็วแกน Y ไว้เหมือนเดิม
         rb.linearVelocity = new Vector2(moveInput * speed, rb.linearVelocity.y);
 
-
-        if (moveInput > 0)
-        {
-            spriteRenderer.flipX = false; // หันขวา
-        }
-        else if (moveInput < 0)
-        {
-            spriteRenderer.flipX = true;  // หันซ้าย
-        }
+        if (moveInput > 0) spriteRenderer.flipX = false;
+        else if (moveInput < 0) spriteRenderer.flipX = true;
     }
 
     private void HandleJump()
@@ -82,18 +98,17 @@ public class Playerr : MonoBehaviour
 
     private void HandleAnimation()
     {
-        // ควบคุมแอนิเมชันด้วยคำสั่ง Play (ชื่อ State ต้องตรงกับใน Animator Window)
         if (!isGrounded)
         {
             animator.Play("jumping");
         }
-        // else if (Mathf.Abs(rb.linearVelocity.x) > 0.1f)
-        // {
-        //     animator.Play("running");
-        // }
+        else if (Mathf.Abs(rb.linearVelocity.x) > 0.1f)
+        {
+            animator.Play("running"); // เปิดใช้งานอนิเมชันวิ่งถ้ามี
+        }
         else
         {
-            animator.Play("Frog");
+            animator.Play("frong");
         }
     }
 
@@ -101,20 +116,111 @@ public class Playerr : MonoBehaviour
     {
         if (groundCheck != null)
         {
-            // สร้างวงกลมจำลองใต้เท้าเพื่อตรวจจับว่าชนกับ Layer พื้นหรือไม่
             isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         }
+    }
+
+    // --- ระบบการชน (Collision/Trigger) ---
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        // 1. เก็บผลไม้ (อย่าลืมสร้าง Tag "Fruit")
+        if (other.CompareTag("Fruit"))
+        {
+            fruitCount++;
+            UpdateAllUI();
+            Destroy(other.gameObject);
+        }
+
+        // 2. เข้าเส้นชัย (อย่าลืมสร้าง Tag "WinZone")
+        if (other.CompareTag("WinZone") && fruitCount >= requiredFruits)
+        {
+            WinGame();
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        // 3. ชนหนาม (อย่าลืมสร้าง Tag "Spike")
+        if (collision.gameObject.CompareTag("Spike"))
+        {
+            TakeDamage(20);
+        }
+    }
+
+    // --- ระบบจัดการค่าพลังและสถานะเกม ---
+
+    public void TakeDamage(int damage)
+    {
+        if (!alive) return;
+        currentHP -= damage;
+        currentHP = Mathf.Clamp(currentHP, 0, maxHP);
+        UpdateAllUI();
+
+        if (currentHP <= 0) Die();
+    }
+
+    void UpdateAllUI()
+    {
+        if (hpText != null) hpText.text = "HP: " + currentHP;
+        if (healthBarFill != null) healthBarFill.fillAmount = (float)currentHP / maxHP;
+        if (fruitText != null) fruitText.text = "Fruits: " + fruitCount + " / " + requiredFruits;
     }
 
     public void Die()
     {
         if (!alive) return;
-
         alive = false;
         canMove = false;
-        rb.linearVelocity = Vector2.zero; // หยุดนิ่งทันที
+        rb.linearVelocity = Vector2.zero;
 
         if (deathSound != null) deathSound.Play();
         animator.Play("dying");
+
+        if (gameOverPanel != null) gameOverPanel.SetActive(true);
+        Time.timeScale = 0f;
+    }
+
+    void WinGame()
+    {
+        canMove = false;
+        rb.linearVelocity = Vector2.zero;
+
+        // --- แทรกตรงนี้ ---
+        if (winSfxPrefab != null)
+        {
+            Instantiate(winSfxPrefab);
+        }
+        // ----------------
+
+        if (winPanel != null) winPanel.SetActive(true);
+        Time.timeScale = 0f;
+    }
+
+    // --- ปุ่มสำหรับ UI ---
+
+    public void RestartGame()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void GotoMainMenu()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(0);
+    }
+    public void QuitGame()
+    {
+
+        Application.OpenURL("https://gi204-229b-gim-iti-bu.itch.io/kittys");
+
+
+        Debug.Log(" itch.io close !");
+        Application.Quit();
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
     }
 }

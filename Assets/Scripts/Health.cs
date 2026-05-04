@@ -8,24 +8,35 @@ public class Health : MonoBehaviour
     [Header("HP Settings")]
     public int maxHP = 100;
     public int currentHP;
-    
+
     [Header("UI References")]
-    public TextMeshProUGUI hpText;  
-    public Image healthBarFill;     
-    public GameObject gameOverPanel; 
+    public TextMeshProUGUI hpText;
+    public Image healthBarFill;     // ลากวัตถุ "Blood" มาใส่ที่นี่
+    public GameObject gameOverPanel;
+    public float lerpSpeed = 5f;    // ความเร็วในการลดของหลอดเลือด
 
     void Start()
     {
         currentHP = maxHP;
-        UpdateHPUI();
+        Time.timeScale = 1f;
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
-        Time.timeScale = 1f; 
+        UpdateHPUI();
+    }
+
+    void Update()
+    {
+        // ทำให้หลอดเลือดค่อยๆ ลดแบบนิ่มนวล
+        if (healthBarFill != null)
+        {
+            float targetFill = (float)currentHP / maxHP;
+            healthBarFill.fillAmount = Mathf.Lerp(healthBarFill.fillAmount, targetFill, Time.deltaTime * lerpSpeed);
+        }
     }
 
     public void TakeDamage(int damage)
     {
         currentHP -= damage;
-        currentHP = Mathf.Clamp(currentHP, 0, maxHP); 
+        currentHP = Mathf.Clamp(currentHP, 0, maxHP);
         UpdateHPUI();
 
         if (currentHP <= 0)
@@ -36,11 +47,15 @@ public class Health : MonoBehaviour
 
     void UpdateHPUI()
     {
-        if (hpText != null) hpText.text = "HP: " + currentHP;
-        if (healthBarFill != null) healthBarFill.fillAmount = (float)currentHP / maxHP;
+        if (hpText != null)
+        {
+            hpText.text = "HP: " + currentHP;
+        }
+        // หมายเหตุ: การลดแบบทันทีจะอยู่ในฟังก์ชันนี้ แต่เราย้ายไปทำแบบ Smooth ใน Update แล้ว
     }
 
-    private void OnCollisionEnter(Collision collision)
+    // ใช้ OnTriggerEnter2D หรือ OnCollisionEnter2D เพราะเกมคุณเป็น 2D
+    private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Spike"))
         {
@@ -51,7 +66,7 @@ public class Health : MonoBehaviour
     void Die()
     {
         if (gameOverPanel != null) gameOverPanel.SetActive(true);
-        Time.timeScale = 0f; 
+        Time.timeScale = 0f;
         Debug.Log("Player Died!");
     }
 
@@ -59,12 +74,6 @@ public class Health : MonoBehaviour
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
-
-    public void GotoMainMenu()
-    {
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(0);
     }
     public void QuitGame()
     {

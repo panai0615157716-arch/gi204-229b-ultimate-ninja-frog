@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: e79202ebbcc85284db0f94542e4d8b8b
+timeCreated: 1484146680
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 215755
+  packageName: Health System For Dummies
+  packageVersion: 1.0.0
+  assetPath: Assets/NoobGameDev/Health System For Dummies/Example Scene Scripts/Editor/ReadmeEditor.cs
+  uploadId: 486432
