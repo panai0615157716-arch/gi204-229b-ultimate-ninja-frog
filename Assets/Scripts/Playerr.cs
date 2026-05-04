@@ -213,7 +213,7 @@ public class Playerr : MonoBehaviour
     public void QuitGame()
     {
 
-        Application.OpenURL("https://gi204-229b-gim-iti-bu.itch.io/kittys");
+        Application.OpenURL("https://gi204-229b-gim-iti-bu.itch.io/ultimate-ninja-frog");
 
 
         Debug.Log(" itch.io close !");
